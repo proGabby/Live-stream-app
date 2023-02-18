@@ -15,6 +15,7 @@ import '../pusher_service.dart';
 import '../stream_model.dart';
 import '../utils/constants.dart';
 import 'animatedEmoji.dart';
+import 'like_animation.dart';
 
 double buttonSize = 60;
 
@@ -35,6 +36,7 @@ class BroadcastPage extends ConsumerStatefulWidget {
 
 class _BroadcastPageState extends ConsumerState<BroadcastPage> {
   bool _emojiAppear = false;
+  bool isAnimating = false;
   Streamer? _streamerData;
 
   TextEditingController _messageController = TextEditingController();
@@ -169,13 +171,14 @@ class _BroadcastPageState extends ConsumerState<BroadcastPage> {
             onPressed: () {
               switch (index) {
                 case 0:
-                  final msg = ref.watch(pusherMessageProvider).messageList;
-                  print(msg);
+                  setState(() {
+                    _emojiAppear = true;
+                  });
                   break;
                 case 2:
                   print("emoji pressed");
                   setState(() {
-                    _emojiAppear = true;
+                    isAnimating = true;
                   });
                   break;
                 default:
@@ -330,10 +333,26 @@ class _BroadcastPageState extends ConsumerState<BroadcastPage> {
             if (_isJoined) Center(child: _videoPanel()),
             if (!widget.isBroadcaster) flowWidget(context),
             if (widget.isBroadcaster) BroadCasterFlowWidget(context),
-            // MaterialButton(
-            //   onPressed:
-            //   child: Text('send message'),
-            // ),
+
+            Align(
+              alignment: Alignment.center,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.linearToEaseOut,
+                opacity: isAnimating ? 1.0 : 0.0,
+                child: LikeAnimation(
+                  child:
+                      const Icon(Icons.favorite, color: Colors.blue, size: 150),
+                  isAnimating: isAnimating,
+                  duration: const Duration(milliseconds: 500),
+                  onEnd: () {
+                    setState(() {
+                      isAnimating = false;
+                    });
+                  },
+                ),
+              ),
+            ),
 
             if (!widget.isBroadcaster)
               Positioned(
